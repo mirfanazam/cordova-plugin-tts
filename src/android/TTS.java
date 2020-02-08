@@ -44,6 +44,7 @@ public class TTS extends CordovaPlugin implements OnInitListener {
     public static final String ERR_NOT_INITIALIZED = "ERR_NOT_INITIALIZED";
     public static final String ERR_ERROR_INITIALIZING = "ERR_ERROR_INITIALIZING";
     public static final String ERR_UNKNOWN = "ERR_UNKNOWN";
+    public static final String ERR_UNAVAILABLE = "ERR_UNAVAILABLE";
 
     boolean ttsInitialized = false;
     TextToSpeech tts = null;
@@ -190,10 +191,17 @@ public class TTS extends CordovaPlugin implements OnInitListener {
             return;
         }
 
+        String[] localeArgs = locale.split("-");
+
+        int available = tts.isLanguageAvailable(new Locale(localeArgs[0], localeArgs[1]));
+        if (available == tts.LANG_MISSING_DATA || available == tts.LANG_NOT_SUPPORTED) {
+            callbackContext.error(ERR_UNAVAILABLE);
+            return;
+        }
+        
         HashMap<String, String> ttsParams = new HashMap<String, String>();
         ttsParams.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, callbackContext.getCallbackId());
 
-        String[] localeArgs = locale.split("-");
         tts.setLanguage(new Locale(localeArgs[0], localeArgs[1]));
 
         if (Build.VERSION.SDK_INT >= 27) {
